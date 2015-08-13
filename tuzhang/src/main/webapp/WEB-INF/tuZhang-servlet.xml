@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+    
+    <mvc:annotation-driven />
+	<context:component-scan base-package="com.guludada.tuzhang.controller"/>
+
+    <bean id="viewResolver"
+        class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+	    <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+	    <property name="prefix" value="/WEB-INF/jsp/"/>
+	    <property name="suffix" value=".jsp"/>
+	</bean>
+	
+	<!-- 配置DataSource数据源 -->
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<!-- <property name="url" value="jdbc:mysql://localhost:3306/testJava" /> -->
+		<property name="url" value="jdbc:mysql://localhost:3306/tuzhang?useUnicode=true&amp;characterEncoding=UTF-8" />
+		<property name="username" value="root" />
+		<property name="password" value="" />
+	</bean>
+
+	<!--创建sqlSessionFactory -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="mapperLocations" value="classpath:mapper/*.xml" />
+		<property name="typeAliasesPackage" value="com.guludada.tuzhang.domain"/>
+		
+		<!-- 如果之前的configuration.xml已经配置了mapping文件是users.xml，那这里面就不用再配置一遍了，不然会报重名错误！！  <property name="mapperLocations" value="classpath:com/tutie/mapping/users.xml" />-->
+	</bean>
+
+	<!-- 配置事务管理器，注意这里的dataSource和SqlSessionFactoryBean的dataSource要一致，不然事务就没有作用了 -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<!-- 配置事务的传播特性 -->
+	<bean id="baseTransactionProxy"
+		class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean"
+		abstract="true">
+		<property name="transactionManager" ref="transactionManager" />
+		<property name="transactionAttributes">
+			<props>
+				<prop key="add*">PROPAGATION_REQUIRED</prop>
+				<prop key="edit*">PROPAGATION_REQUIRED</prop>
+				<prop key="remove*">PROPAGATION_REQUIRED</prop>
+				<prop key="insert*">PROPAGATION_REQUIRED</prop>
+				<prop key="update*">PROPAGATION_REQUIRED</prop>
+				<prop key="del*">PROPAGATION_REQUIRED</prop>
+				<prop key="*">readOnly</prop>
+			</props>
+		</property>
+	</bean>
+	
+<!-- 	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+	  <constructor-arg index="0" ref="sqlSessionFactory" />
+	</bean> -->
+	
+<!-- 	<bean id="postsDaoInjection"  class="org.mybatis.spring.mapper.MapperFactoryBean"
+		scope="prototype">
+		<property name="mapperInterface" value="com.guludada.tuzhang.dao.usersDao" />
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean> -->
+    <bean id="postService" class="com.guludada.tuzhang.serviceImpl.showUserImpl"
+		scope="prototype">
+	</bean> 
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+	  <property name="basePackage" value="com.guludada.tuzhang.dao" />
+	</bean>
+	
+
+</beans>
